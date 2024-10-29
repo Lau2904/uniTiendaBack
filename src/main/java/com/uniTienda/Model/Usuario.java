@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,4 +37,7 @@ public class Usuario {
     @Column(name = "tipousuario") // Asegúrate de que esto coincida
     private String tipoUsuario; 
 
+    @Transient // Esta anotación evita que el campo se persista en la base de datos
+    private String googleToken;
+    
 }

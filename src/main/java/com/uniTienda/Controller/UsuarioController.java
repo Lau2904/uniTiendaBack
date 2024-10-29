@@ -1,10 +1,12 @@
 package com.uniTienda.Controller;
 
-import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,57 +17,109 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uniTienda.Model.Usuario;
 import com.uniTienda.Service.UsuarioService;
+import com.uniTienda.dto.ResponseMessage;
+import com.uniTienda.security.AuthCredentials;
+
+import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping("/api/usuarios")
+@AllArgsConstructor
 public class UsuarioController {
-    @Autowired
-    private UsuarioService usuarioService;
+
+    private final UsuarioService usuService;
 
     @PostMapping("/registro")
-    public ResponseEntity<Usuario> createUsuario(@RequestBody Usuario usuario) {
-        // Aquí, podrías agregar lógica adicional si es necesario
-        Usuario newUser = usuarioService.createUsuario(usuario);
-        return ResponseEntity.status(201).body(newUser); // 201 Created
+    public ResponseEntity<Usuario> registerUser(@RequestBody Usuario usuario) {
+        Usuario newUser = usuService.registerUser(usuario);
+        return ResponseEntity.ok(newUser);
     }
+
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Usuario usuario) {
-        String token = usuarioService.login(usuario.getEmail(), usuario.getPassword());
-        if (token != null) {
-            return ResponseEntity.ok(token); // 200 OK
-        } else {
-            return ResponseEntity.status(401).body("Credenciales inválidas"); // 401 Unauthorized
-        }
+    public ResponseEntity<String> loginUser(@RequestBody AuthCredentials authCredentials) {
+        String token = usuService.loginUser(authCredentials);
+        return ResponseEntity.ok(token);
     }
 
-    @GetMapping
-    public List<Usuario> getAllUsuarios() {
-        return usuarioService.getAllUsuarios();
-    }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Usuario> getUsuarioById(@PathVariable Long id) {
-        Usuario usuario = usuarioService.getUsuarioById(id);
-        if (usuario != null) {
-            return ResponseEntity.ok(usuario);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> updateUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
-        Usuario updatedUsuario = usuarioService.updateUsuario(id, usuario);
-        if (updatedUsuario != null) {
-            return ResponseEntity.ok(updatedUsuario);
+    public ResponseEntity<Usuario> updateUser(@PathVariable Long id, @RequestBody Usuario updatedInfo) {
+        Usuario updatedUser = usuService.updateUserInfo(id, updatedInfo);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    // Solo ADMIN puede acceder
+   
+   
+    @GetMapping("/{id}")
+    public ResponseEntity<Usuario> getUserById(@PathVariable Long id) {
+        Usuario user = usuService.getUserById(id);
+        return ResponseEntity.ok(user);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Usuario>> getAllUsers() {
+        List<Usuario> users = usuService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+     @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logout() {
+        // Crear un mensaje en el cuerpo de la respuesta para confirmar el logout
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Logout exitoso");
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/sendResetPasswordCode")
+    public ResponseEntity<ResponseMessage> sendResetPasswordCode(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest().body(new ResponseMessage("El parámetro 'email' es requerido."));
+        }
+
+        boolean success = usuService.sendResetPasswordCode(email);
+        if (success) {
+            return ResponseEntity.ok(new ResponseMessage("Código enviado con éxito."));
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage("Usuario no encontrado."));
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUsuario(@PathVariable Long id) {
-        usuarioService.deleteUsuario(id);
-        return ResponseEntity.noContent().build();
+    @PostMapping("/verifyResetPasswordCode")
+    public ResponseEntity<Map<String, String>> verifyResetPasswordCode(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String code = request.get("code");
+
+        if (email == null || code == null || email.isEmpty() || code.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Faltan los parámetros requeridos."));
+        }
+
+        boolean valid = usuService.verifyResetPasswordCode(email, code);
+        if (valid) {
+            return ResponseEntity.ok(Map.of("message", "Código verificado correctamente."));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Código incorrecto o expirado."));
+        }
     }
+
+    @PutMapping("/resetPassword")
+public ResponseEntity<Map<String, String>> resetPassword(@RequestBody Map<String, String> request) {
+    String email = request.get("email");
+    String newPassword = request.get("newPassword");
+
+    if (email == null || newPassword == null || email.isEmpty() || newPassword.isEmpty()) {
+        return ResponseEntity.badRequest().body(Map.of("message", "Email y nueva contraseña son requeridos."));
+    }
+
+    boolean success = usuService.resetPassword(email, newPassword);
+    if (success) {
+        return ResponseEntity.ok(Map.of("message", "Contraseña actualizada exitosamente."));
+    } else {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "No se pudo actualizar la contraseña. Código de verificación inválido o expirado."));
+    }
+}
+
 }
