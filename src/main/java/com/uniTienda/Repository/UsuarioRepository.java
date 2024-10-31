@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.uniTienda.Model.Usuario;
 
 
-public interface  UsuarioRepository extends JpaRepository<Usuario, Integer> {
+public interface  UsuarioRepository extends JpaRepository<Usuario, Long> {
     
     Optional<Usuario> findOneByEmail(String email);
 }

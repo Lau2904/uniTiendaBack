@@ -63,7 +63,7 @@ public class UsuarioService {
 
 
     public Usuario updateUserInfo(Long id, Usuario updatedInfo) {
-        Optional<Usuario> userOptional = usuarioRepository.findById(id.intValue());
+        Optional<Usuario> userOptional = usuarioRepository.findById(id);
         if (userOptional.isPresent()) {
             Usuario user = userOptional.get();
             user.setNombre(updatedInfo.getNombre());
@@ -77,7 +77,7 @@ public class UsuarioService {
     }
 
     public Usuario getUserById(Long id) {
-        return usuarioRepository.findById(id.intValue()).orElseThrow(() -> new RuntimeException("User not found"));
+        return usuarioRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     public List<Usuario> getAllUsers() {
