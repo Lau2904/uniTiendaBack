@@ -12,14 +12,19 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.uniTienda.Model.Direccion;
+import com.uniTienda.Model.Orden.Orden;
 import com.uniTienda.Model.Usuario;
 import com.uniTienda.Repository.UsuarioRepository;
 import com.uniTienda.security.AuthCredentials;
 import com.uniTienda.security.TokenUtils;
 
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
 
@@ -141,6 +146,72 @@ public class UsuarioService {
         }
         return false;
     }
+
+     public Long obtenerUsuarioAutenticadoId() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+
+        Usuario usuario = usuarioRepository.findOneByEmail(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        return usuario.getId();
+    }
+
+        public void enviarCorreoConfirmacionOrden(Orden orden) {
+        String destinatario = orden.getUsuario().getEmail();
+        String asunto = "Creación de Pedido #" + orden.getNumeroPedido();
+        String mensaje = construirMensajeConfirmacion(orden);
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+
+            helper.setTo(destinatario);
+            helper.setSubject(asunto);
+            helper.setText(mensaje, true); // true para interpretar como HTML
+
+            mailSender.send(mimeMessage);
+            System.out.println("Correo de confirmación enviado a: " + destinatario);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error al enviar el correo de confirmación", e);
+        }
+    }
+
+    private String construirMensajeConfirmacion(Orden orden) {
+        String direccionFormateada = formatearDireccion(orden.getDireccion());
+
+        return "<h1>Creación de Pedido #" + orden.getNumeroPedido() + "</h1>"
+                + "<p>Estimado/a " + orden.getUsuario().getNombre() + ",</p>"
+                + "<p>Gracias por tu compra. Aquí tienes los detalles de tu pedido:</p>"
+                + "<ul>"
+                + "<li><strong>Dirección de entrega:</strong> " + direccionFormateada + "</li>"
+                + "<li><strong>Método de pago:</strong> " + orden.getMetodoPago() + "</li>"
+                + "<li><strong>Total:</strong> $" + orden.getTotal() + "</li>"
+                + "<li><strong>Fecha de entrega:</strong> " + (orden.getFechaMaximaEntrega() != null ? orden.getFechaMaximaEntrega() : "N/A") + "</li>"
+                + "</ul>"
+                + "<p>Te mantendremos informado/a sobre el estado de tu pedido a traves de de pestaña pedidos</p>"
+                + "<p>Saludos,</p>"
+                + "<p><strong>Equipo de uniTienda</strong></p>";
+    }
+
+    private String formatearDireccion(Direccion direccion) {
+        return String.format(
+            "%s, %s, %s, %s, %s",
+            direccion.getCalle(),
+            direccion.getCiudad(),
+            direccion.getDepartamento(),
+            direccion.getPais(),
+            direccion.getCodigoPostal() != null ? direccion.getCodigoPostal() : ""
+        );
+    }
+
     
 
 

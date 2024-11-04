@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.uniTienda.Model.Productos.Producto;
+import com.uniTienda.Model.Producto;
 import com.uniTienda.Service.ProductoService;
-import com.uniTienda.dto.Productos.ProductoRequest;
+import com.uniTienda.dto.ProductoRequest;
 
 @RestController
 @RequestMapping("/api/productos")

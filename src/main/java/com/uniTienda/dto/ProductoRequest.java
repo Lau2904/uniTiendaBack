@@ -1,4 +1,4 @@
-package com.uniTienda.dto.Productos;
+package com.uniTienda.dto;
 
 import java.math.BigDecimal;
 import java.util.List;

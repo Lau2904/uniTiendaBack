@@ -38,7 +38,7 @@ SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authMan
     return http
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/api/usuarios/login", "/api/usuarios/registro", "/api/usuarios/sendResetPasswordCode","/api/usuarios/verifyResetPasswordCode","/api/usuarios/resetPassword").permitAll() // Asegúrate de que la ruta sea correcta
+            .requestMatchers("/api/usuarios/login", "/api/usuarios/registro", "/api/usuarios/sendResetPasswordCode","/api/usuarios/verifyResetPasswordCode","/api/usuarios/resetPassword","/api/carrito/**").permitAll() // Asegúrate de que la ruta sea correcta
             .anyRequest().authenticated()
         )
         .httpBasic(withDefaults())
