@@ -105,4 +105,8 @@ public class ProductoService {
 
     }
 
+    public List<Producto> getProductosPorCategoria(String categoria) {
+        return productoRepository.findByCategoria(categoria);
+    }
+
 }

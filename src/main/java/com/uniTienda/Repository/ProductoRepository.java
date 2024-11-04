@@ -26,5 +26,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      // Consulta nativa para buscar productos que contengan al menos uno de los colores especificados en el array `colores`
      @Query(value = "SELECT * FROM producto p WHERE p.colores && :colores", nativeQuery = true)
      List<Producto> findByColoresIn(@Param("colores") String[] colores);
+
+     List<Producto> findByCategoria(String categoria);
  
 }

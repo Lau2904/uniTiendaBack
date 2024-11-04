@@ -5,17 +5,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.uniTienda.Model.Usuario;
+import com.uniTienda.Repository.UsuarioRepository;
 import com.uniTienda.Service.UsuarioService;
 import com.uniTienda.dto.ResponseMessage;
 import com.uniTienda.security.AuthCredentials;
@@ -28,6 +33,9 @@ import lombok.AllArgsConstructor;
 public class UsuarioController {
 
     private final UsuarioService usuService;
+    
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @PostMapping("/registro")
     public ResponseEntity<Usuario> registerUser(@RequestBody Usuario usuario) {
@@ -63,6 +71,12 @@ public class UsuarioController {
         List<Usuario> users = usuService.getAllUsers();
         return ResponseEntity.ok(users);
     }
+
+    @GetMapping("/clientes")
+public ResponseEntity<List<Usuario>> getAllClientes() {
+    List<Usuario> clientes = usuService.getAllClientes();
+    return ResponseEntity.ok(clientes);
+}
      @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout() {
         // Crear un mensaje en el cuerpo de la respuesta para confirmar el logout
@@ -121,5 +135,25 @@ public ResponseEntity<Map<String, String>> resetPassword(@RequestBody Map<String
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "No se pudo actualizar la contraseña. Código de verificación inválido o expirado."));
     }
 }
+
+@PostMapping("/complete-profile")
+    public String completeProfile(@AuthenticationPrincipal OAuth2User oAuth2User,
+                                  @RequestParam String telefono,
+                                  @RequestParam String tipoDocumento,
+                                  @RequestParam String numeroDocumento) {
+        
+        String email = oAuth2User.getAttribute("email");
+        
+        Usuario usuario = usuarioRepository.findOneByEmail(email).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        // Completar los datos del usuario
+        usuario.setTelefono(telefono);
+        usuario.setTipoDocumento(tipoDocumento);
+        usuario.setNumeroDocumento(numeroDocumento);
+        
+        usuarioRepository.save(usuario);
+
+        return "redirect:/home"; // Redirige a la página principal después de completar el perfil
+    }
 
 }

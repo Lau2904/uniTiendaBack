@@ -29,26 +29,42 @@ public class WebSecurityConfig {
     private final JWTAuthorizationFilter jwtAuthorizationFilter;
 
     @Bean
-SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
 
-    JWTAuthenticationFilter jwtAuthenticationFilter = new JWTAuthenticationFilter();
-    jwtAuthenticationFilter.setAuthenticationManager(authManager);
-    jwtAuthenticationFilter.setFilterProcessesUrl("/api/usuarios/login");
+        JWTAuthenticationFilter jwtAuthenticationFilter = new JWTAuthenticationFilter();
+        jwtAuthenticationFilter.setAuthenticationManager(authManager);
+        jwtAuthenticationFilter.setFilterProcessesUrl("/api/usuarios/login");
 
-    return http
-        .csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/api/usuarios/login", "/api/usuarios/registro", "/api/usuarios/sendResetPasswordCode","/api/usuarios/verifyResetPasswordCode","/api/usuarios/resetPassword","/api/carrito/**").permitAll() // Asegúrate de que la ruta sea correcta
-            .anyRequest().authenticated()
-        )
-        .httpBasic(withDefaults())
-        .sessionManagement(session -> session
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        )
-        .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        .build();
-}
+        return http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers(
+                    "/api/usuarios/login", 
+                    "/api/usuarios/registro", 
+                    "/api/usuarios/sendResetPasswordCode",
+                    "/api/usuarios/verifyResetPasswordCode",
+                    "/api/usuarios/resetPassword",
+                    "/api/carrito/**",
+                    "/oauth2/**", // Permitir rutas de OAuth2
+                    "/login/oauth2/code/google",
+                    "/api/productos/**"
+
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/oauth2/authorization/google") // Ruta de inicio de sesión de Google
+                .defaultSuccessUrl("/oauth2/success")      // Redirigir a esta URL después de autenticación exitosa
+            )
+            .httpBasic(withDefaults())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
+    }
+
 
 
    
