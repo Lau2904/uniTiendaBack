@@ -50,5 +50,8 @@ public class UserDetailsImpl implements UserDetails{
     public String getNombre(){
         return usuario.getNombre();
     }
+    public Long getId() {
+        return usuario.getId();
+    }
 
 }

@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.uniTienda.Model.Productos.Producto;
-import com.uniTienda.Repository.Productos.ProductoRepository;
-import com.uniTienda.dto.Productos.ProductoRequest;
+import com.uniTienda.Model.Producto;
+import com.uniTienda.Repository.ProductoRepository;
+import com.uniTienda.dto.ProductoRequest;
 
 
 
