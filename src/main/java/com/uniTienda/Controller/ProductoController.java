@@ -149,5 +149,13 @@ public class ProductoController {
         return ResponseEntity.ok(productos);
     }
 
+    @GetMapping("/categoria")
+    public ResponseEntity<List<Producto>> getProductosPorCategoria(@RequestParam String categoria) {
+        List<Producto> productos = productoService.getProductosPorCategoria(categoria);
+        return ResponseEntity.ok(productos);
+    }
+
+
+
     
 }

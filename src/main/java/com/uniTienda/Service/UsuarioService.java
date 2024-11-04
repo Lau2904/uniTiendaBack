@@ -66,6 +66,10 @@ public class UsuarioService {
         return TokenUtils.createToken(usuario.getNombre(), usuario.getEmail());
     }
 
+    public List<Usuario> getAllClientes() {
+        return usuarioRepository.findByTipoUsuario("Cliente");
+    }
+
 
     public Usuario updateUserInfo(Long id, Usuario updatedInfo) {
         Optional<Usuario> userOptional = usuarioRepository.findById(id);
@@ -88,6 +92,8 @@ public class UsuarioService {
     public List<Usuario> getAllUsers() {
         return usuarioRepository.findAll();
     }
+
+    
 
       public boolean sendResetPasswordCode(String email) {
         Optional<Usuario> usuarioOptional = usuarioRepository.findOneByEmail(email);
